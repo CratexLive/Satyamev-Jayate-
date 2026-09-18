@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>Satyamev Jayate | Custom Stream</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Plyr CSS -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    
+    <style>
+        :root {
+            --sage-bg: #9eb58f;
+            --forest-dark: #0f261c;
+            
+            /* Plyr Custom Theme Colors */
+            --plyr-color-main: #9eb58f; /* Sage green for progress bar and large play button */
+            --plyr-video-control-color: #ffffff;
+            --plyr-video-control-background-hover: rgba(158, 181, 143, 0.2);
+            --plyr-video-control-color-hover: #9eb58f;
+            --plyr-tooltip-background: #0f261c;
+            --plyr-tooltip-color: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { width: 100%; height: 100%; background: var(--sage-bg); overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        .app-container { width: 100%; height: 100%; max-width: 480px; margin: 0 auto; background: var(--sage-bg); display: flex; flex-direction: column; position: relative; }
+
+        .player-card { width: 100%; width: 100vw; max-width: 480px; background: #000; position: relative; flex-shrink: 0; }
+        .video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; display: flex; align-items: center; justify-content: center; }
+        
+        /* Force Plyr to fit the wrapper exactly */
+        .plyr { width: 100%; height: 100%; }
+        video { width: 100%; height: 100%; object-fit: cover; outline: none; will-change: transform; transform: translateZ(0); }
+
+        #loading-overlay { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; z-index: 50; transition: opacity 0.2s ease; opacity: 1; visibility: visible; }
+        #loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .spinner { width: 32px; height: 32px; border: 3px solid rgba(158, 181, 143, 0.2); border-top-color: var(--sage-bg); border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .load-text { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--sage-bg); text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="player-card">
+            <div class="video-wrapper">
+                <div id="loading-overlay">
+                    <div class="spinner"></div>
+                    <div class="load-text" id="loadStatus">Loading...</div>
+                </div>
+                <!-- Native controls attribute removed so Plyr can render custom UI -->
+                <video id="videoElement" playsinline autoplay preload="auto" x5-playsinline x-webkit-airplay="allow" src="https://dd-stream.vercel.app/download?path=6aac83636ee953db672696a1"></video>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plyr JS -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script>
+        // Initialize custom player
+        const player = new Plyr('#videoElement', {
+            controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+            hideControls: true,
+            autoplay: true
+        });
+
+        const video = document.getElementById('videoElement');
+        const loader = document.getElementById('loading-overlay');
+        const loadStatus = document.getElementById('loadStatus');
+
+        const removeLoader = () => {
+            loader.classList.add('hidden');
+        };
+
+        video.addEventListener('loadeddata', removeLoader);
+        video.addEventListener('playing', removeLoader);
+        video.addEventListener('canplay', removeLoader);
+
+        setTimeout(removeLoader, 1500);
+
+        video.addEventListener('stalled', () => {
+            loadStatus.textContent = 'Buffering...';
+            loader.classList.remove('hidden');
+        });
+
+        video.addEventListener('waiting', () => {
+            loader.classList.remove('hidden');
+        });
+
+        video.addEventListener('playing', () => {
+            loader.classList.add('hidden');
+        });
+
+        const storageKey = 'satyamev_plyr_pos';
+        video.addEventListener('loadedmetadata', () => {
+            const savedTime = localStorage.getItem(storageKey);
+            if (savedTime && parseFloat(savedTime) > 5) {
+                video.currentTime = parseFloat(savedTime);
+            }
+        });
+
+        video.addEventListener('timeupdate', () => {
+            if (Math.floor(video.currentTime) % 5 === 0) {
+                localStorage.setItem(storageKey, video.currentTime);
+            }
+        });
+
+        video.addEventListener('ended', () => {
+            localStorage.removeItem(storageKey);
+        });
+    </script>
+</body>
+</html>
