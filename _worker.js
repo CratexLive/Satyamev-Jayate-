@@ -2,9 +2,10 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const targetUrl = url.searchParams.get('url');
-    const cookie = url.searchParams.get('cookie') || "";
+    
+    // Frontend se header ya query param se cookie uthayega
+    let cookie = url.searchParams.get('cookie') || request.headers.get('X-Jio-Cookie') || "";
 
-    // Agar url parameter nahi hai, toh worker error dene ke bajaye static assets (index.html) serve karega
     if (!targetUrl) {
       return env.ASSETS ? env.ASSETS.fetch(request) : new Response('Missing target URL', { status: 400 });
     }
