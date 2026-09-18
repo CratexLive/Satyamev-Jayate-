@@ -4,11 +4,11 @@ export default {
     const targetUrl = url.searchParams.get('url');
     const cookie = url.searchParams.get('cookie') || "";
 
+    // Agar url parameter nahi hai, toh worker error dene ke bajaye static assets (index.html) serve karega
     if (!targetUrl) {
-      return new Response('Missing target URL', { status: 400 });
+      return env.ASSETS ? env.ASSETS.fetch(request) : new Response('Missing target URL', { status: 400 });
     }
 
-    // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
