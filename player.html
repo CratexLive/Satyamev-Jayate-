@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embedded Player</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
+<style>
+  body { margin: 0; background: #000; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+  video { width: 100%; height: 100%; object-fit: contain; }
+</style>
+</head>
+<body>
+
+<video id="videoPlayer" controls autoplay playsinline></video>
+
+<script>
+const mpdUrl = "https://jiotvmblive.cdn.jio.com/bpk-tv/Sony_HD_MOB/WDVLive/index.mpd";
+const cookie = "hdnea=st=1789740004~exp=1789761604~acl=/*~hmac=d95146124c8c8a7d8d00a54746b7898914d3289d623a22985fb2069fbcc6a3df";
+const keyId = "17baf7d2f243c3aa85f5203137aad6da";
+const key = "15d0fb6df895c4d18368f5058f207511";
+
+async function initPlayer() {
+  shaka.polyfill.installAll();
+  if (!shaka.Player.isBrowserSupported()) return;
+
+  const video = document.getElementById('videoPlayer');
+  const player = new shaka.Player(video);
+
+  player.configure({
+    drm: {
+      clearKeys: {
+        [keyId]: key
+      }
+    }
+  });
+
+  player.getNetworkingEngine().registerRequestFilter((type, request) => {
+    request.headers['Cookie'] = cookie;
+    request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+  });
+
+  try {
+    await player.load(mpdUrl);
+    video.play();
+  } catch (e) {
+    console.error('Error loading stream in iframe', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initPlayer);
+</script>
+
+</body>
+</html>
