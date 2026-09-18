@@ -75,18 +75,21 @@ async function initPlayer() {
     }
   });
 
-  // Har request ko worker ke through route karo aur custom header me cookie bhejo
+  // Intercept all sub-manifest, init, and segment requests and wrap them through the worker proxy
   player.getNetworkingEngine().registerRequestFilter((type, request) => {
-    const originalUri = request.uri;
-    request.uri = `${window.location.origin}/?url=${encodeURIComponent(originalUri)}`;
-    request.headers['X-Jio-Cookie'] = cookie;
+    if (!request.uri.includes('?url=')) {
+      request.uri = `${window.location.origin}/?url=${encodeURIComponent(request.uri)}&cookie=${encodeURIComponent(cookie)}`;
+    }
   });
 
   try {
-    log(`Loading stream via worker proxy...`, "info");
+    log(`Loading stream through proxy...`, "info");
     document.getElementById("streamStatus").textContent = "Status: Connecting & Decrypting...";
     
-    await player.load(mpdUrl);
+    // Wrap the initial MPD manifest URL as well
+    const proxiedMpdUrl = `${window.location.origin}/?url=${encodeURIComponent(mpdUrl)}&cookie=${encodeURIComponent(cookie)}`;
+    
+    await player.load(proxiedMpdUrl);
     
     log("SUCCESS: Stream loaded and playing in browser!", "success");
     document.getElementById("streamStatus").textContent = "Status: Playing Live (200 OK)";
