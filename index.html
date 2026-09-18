@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sony SET HD | Cloudflare Pages Player</title>
+<title>Sony SET HD | Cloudflare Pages</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
 <style>
   :root { --bg: #030712; --surface: #0f172a; --border: rgba(255,255,255,0.08); --primary: #6366f1; --live: #ef4444; --text: #f8fafc; --muted: #64748b; }
@@ -75,10 +75,11 @@ async function initPlayer() {
     }
   });
 
-  // Automatically route all segments and manifest through local _worker.js proxy
+  // Har request ko worker ke through route karo aur custom header me cookie bhejo
   player.getNetworkingEngine().registerRequestFilter((type, request) => {
     const originalUri = request.uri;
-    request.uri = `${window.location.origin}/?url=${encodeURIComponent(originalUri)}&cookie=${encodeURIComponent(cookie)}`;
+    request.uri = `${window.location.origin}/?url=${encodeURIComponent(originalUri)}`;
+    request.headers['X-Jio-Cookie'] = cookie;
   });
 
   try {
