@@ -3,105 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sony SET HD | Cloudflare Pages</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
+<title>Sony SET HD | Iframe Player</title>
 <style>
-  :root { --bg: #030712; --surface: #0f172a; --border: rgba(255,255,255,0.08); --primary: #6366f1; --live: #ef4444; --text: #f8fafc; --muted: #64748b; }
-  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-  .header { padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .video-container { width: 100%; height: 50vh; background: #000; position: relative; }
-  video { width: 100%; height: 100%; object-fit: contain; }
-  .console-box { flex: 1; background: #020617; padding: 14px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
-  .log-entry { display: flex; gap: 8px; word-break: break-all; }
-  .log-time { color: var(--muted); }
-  .log-info { color: #38bdf8; }
-  .log-success { color: #10b981; }
-  .log-error { color: var(--live); font-weight: bold; }
+  body { margin: 0; background: #030712; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  .iframe-container { width: 100%; max-width: 800px; height: 450px; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+  iframe { width: 100%; height: 100%; border: none; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <span style="font-weight: 800; font-size: 0.9rem;">Sony SET HD - Cloudflare Pages</span>
-    <span id="streamStatus" style="font-size: 0.7rem; color: #f59e0b; display: block;">Status: Initializing...</span>
-  </div>
-  <button onclick="document.getElementById('consoleLogs').innerHTML=''" style="background:var(--surface); border:1px solid var(--border); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Clear Logs</button>
+<div class="iframe-container">
+  <!-- Iframe load karega player wali file ko -->
+  <iframe src="player.html" allowfullscreen></iframe>
 </div>
-
-<div class="video-container">
-  <video id="videoPlayer" controls autoplay playsinline></video>
-</div>
-
-<div class="console-box" id="consoleLogs">
-  <div class="log-entry"><span class="log-time">[System]</span> <span class="log-info">Console initialized. Starting player engine...</span></div>
-</div>
-
-<script>
-const mpdUrl = "https://jiotvmblive.cdn.jio.com/bpk-tv/Sony_HD_MOB/WDVLive/index.mpd";
-const cookie = "hdnea=st=1789740004~exp=1789761604~acl=/*~hmac=d95146124c8c8a7d8d00a54746b7898914d3289d623a22985fb2069fbcc6a3df";
-const keyId = "17baf7d2f243c3aa85f5203137aad6da";
-const key = "15d0fb6df895c4d18368f5058f207511";
-
-function log(msg, type = "info") {
-  const box = document.getElementById("consoleLogs");
-  const time = new Date().toLocaleTimeString();
-  box.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span> <span class="log-${type}">${msg}</span></div>`;
-  box.scrollTop = box.scrollHeight;
-}
-
-async function initPlayer() {
-  log("Installing Shaka polyfills...", "info");
-  shaka.polyfill.installAll();
-
-  if (!shaka.Player.isBrowserSupported()) {
-    log("Browser does not support Shaka Player/MSE!", "error");
-    return;
-  }
-
-  const video = document.getElementById('videoPlayer');
-  const player = new shaka.Player(video);
-
-  player.addEventListener('error', (event) => {
-    log(`Shaka Error [Code: ${event.detail.code}] -> ${event.detail.message}`, "error");
-  });
-
-  log("Configuring ClearKey DRM keys...", "info");
-  player.configure({
-    drm: {
-      clearKeys: {
-        [keyId]: key
-      }
-    }
-  });
-
-  // Intercept all sub-manifest, init, and segment requests and wrap them through the worker proxy
-  player.getNetworkingEngine().registerRequestFilter((type, request) => {
-    if (!request.uri.includes('?url=')) {
-      request.uri = `${window.location.origin}/?url=${encodeURIComponent(request.uri)}&cookie=${encodeURIComponent(cookie)}`;
-    }
-  });
-
-  try {
-    log(`Loading stream through proxy...`, "info");
-    document.getElementById("streamStatus").textContent = "Status: Connecting & Decrypting...";
-    
-    // Wrap the initial MPD manifest URL as well
-    const proxiedMpdUrl = `${window.location.origin}/?url=${encodeURIComponent(mpdUrl)}&cookie=${encodeURIComponent(cookie)}`;
-    
-    await player.load(proxiedMpdUrl);
-    
-    log("SUCCESS: Stream loaded and playing in browser!", "success");
-    document.getElementById("streamStatus").textContent = "Status: Playing Live (200 OK)";
-    video.play();
-  } catch (e) {
-    log(`Playback Failed -> ${e.message || e}`, "error");
-    document.getElementById("streamStatus").textContent = "Status: Playback Failed";
-  }
-}
-
-document.addEventListener('DOMContentLoaded', initPlayer);
-</script>
 
 </body>
 </html>
