@@ -1,21 +1,534 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sony SET HD | Iframe Player</title>
-<style>
-  body { margin: 0; background: #030712; display: flex; justify-content: center; align-items: center; height: 100vh; }
-  .iframe-container { width: 100%; max-width: 800px; height: 450px; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  iframe { width: 100%; height: 100%; border: none; }
-</style>
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#060810">
+  <meta name="referrer" content="no-referrer">
+  <title>Sky Sports Cricket HD - CricXCrate</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+  <style>
+    :root {
+      --bg: #060810;
+      --card-bg: #101422;
+      --border: rgba(255, 105, 180, 0.2);
+      --border-glow: rgba(255, 105, 180, 0.35);
+      --text: #FFFFFF;
+      --subtext: rgba(255, 255, 255, 0.65);
+      --lite-pink: #FF69B4;
+      --lite-pink-glow: rgba(255, 105, 180, 0.4);
+      --faded-green: rgba(48, 209, 88, 0.85);
+      --dark-blue: #0A84FF;
+      --dark-blue-glow: rgba(10, 132, 275, 0.4);
+      --cric-gradient: linear-gradient(135deg, #FF69B4 0%, #FF1493 50%, #0A84FF 100%);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif; overflow: hidden; touch-action: manipulation; }
+    button { font: inherit; cursor: pointer; border: 0; background: none; position: relative; z-index: 5; }
+
+    .floating-tg {
+      position: fixed;
+      bottom: 80px; right: 20px;
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, #0088cc 0%, #00aced 100%);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
+      z-index: 99999999; cursor: pointer;
+      animation: floatBadge 3s ease-in-out infinite;
+      text-decoration: none;
+      border: 0.5px solid rgba(255,255,255,0.2);
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .floating-tg:hover { transform: scale(1.1); }
+    .floating-tg svg {
+      width: 26px; height: 26px; fill: #fff;
+      transform: translateX(1px);
+    }
+    @keyframes floatBadge {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 2147483647;
+      background: rgba(6, 8, 16, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px; opacity: 0; pointer-events: none;
+      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    
+    .modal-card {
+      position: relative;
+      background: var(--card-bg); border-radius: 24px;
+      border: 0.5px solid var(--border);
+      width: 100%; max-width: 300px;
+      padding: 22px 18px; text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 105, 180, 0.02);
+      overflow: hidden;
+      transform: scale(0.9) translateY(15px);
+      transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.show .modal-card { transform: scale(1) translateY(0); }
+
+    .water-fill {
+      position: absolute;
+      bottom: 0; left: -50%;
+      width: 200%; height: 100%;
+      background: linear-gradient(180deg, rgba(255, 105, 180, 0) 0%, rgba(255, 105, 180, 0.04) 100%);
+      z-index: 0; pointer-events: none;
+      animation: waveMotion 6s ease-in-out infinite alternate;
+    }
+    @keyframes waveMotion {
+      0% { transform: translateY(50px) rotate(0deg); }
+      100% { transform: translateY(15px) rotate(360deg); }
+    }
+
+    .modal-content { position: relative; z-index: 1; }
+    .player-controls-fade { transition: opacity 0.4s ease; }
+    .player-controls-fade.hidden { opacity: 0; pointer-events: none; }
+
+    .timeline-container {
+      position: relative;
+      width: 100%;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .timeline-track {
+      position: relative;
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      transition: height 0.15s ease;
+    }
+    .timeline-container:hover .timeline-track { height: 8px; }
+    .timeline-buffer {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.35); border-radius: 3px; width: 0%;
+    }
+    .timeline-progress {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      background: var(--lite-pink); border-radius: 3px; width: 100%;
+      box-shadow: 0 0 8px var(--lite-pink-glow);
+    }
+    .timeline-thumb {
+      position: absolute; top: 50%; left: 100%;
+      transform: translate(-50%, -50%);
+      width: 12px; height: 12px; background: #fff; border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 105, 180, 0.6);
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
 
-<div class="iframe-container">
-  <!-- Iframe load karega player wali file ko -->
-  <iframe src="player.html" allowfullscreen></iframe>
-</div>
+  <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" class="floating-tg" title="Join Telegram">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+  </a>
 
-</body>
-</html>
+  <!-- 1st Compact Modal -->
+  <div id="tgModal1" class="modal-overlay">
+    <div class="modal-card">
+      <div class="water-fill"></div>
+      <div class="modal-content">
+        <button onclick="triggerSecondPopup()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--subtext);display:grid;place-items:center;font-size:12px;cursor:pointer;border:0.5px solid var(--border);">✕</button>
+        <div style="width:46px;height:46px;border-radius:16px;background:var(--cric-gradient);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 15px rgba(255,105,180,0.25);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+        </div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:6px;background:var(--cric-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CricXCrate</div>
+        <div style="font-size:12px;color:var(--subtext);line-height:1.4;margin-bottom:16px;">Join our official Telegram channel for uninterrupted Sky Sports Cricket live stream links.</div>
+        <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" onclick="handleJoinSuccess()" style="display:block;width:100%;height:42px;line-height:42px;border-radius:14px;background:#0088cc;font-size:14px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 12px rgba(0,136,204,0.3);">Join Telegram</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2nd Compact Modal -->
+  <div id="tgModal2" class="modal-overlay">
+    <div class="modal-card">
+      <div class="water-fill"></div>
+      <div class="modal-content">
+        <button onclick="closeSecondModal()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--subtext);display:grid;place-items:center;font-size:12px;cursor:pointer;border:0.5px solid var(--border);">✕</button>
+        <div style="width:46px;height:46px;border-radius:16px;background:var(--cric-gradient);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 15px rgba(255,105,180,0.25);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+        </div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:6px;background:var(--cric-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Wait, Don't Miss Out!</div>
+        <div style="font-size:12px;color:var(--subtext);line-height:1.4;margin-bottom:16px;">Join our Telegram channel now to make sure you never miss a match update or stream link!</div>
+        <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" onclick="handleJoinSuccess()" style="display:block;width:100%;height:42px;line-height:42px;border-radius:14px;background:#0088cc;font-size:14px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 12px rgba(0,136,204,0.3);">Join Now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3rd Lock Modal -->
+  <div id="tgModalLock" class="modal-overlay">
+    <div class="modal-card" style="box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);">
+      <div class="water-fill"></div>
+      <div class="modal-content">
+        <div style="width:46px;height:46px;border-radius:16px;background:var(--cric-gradient);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 15px rgba(255,105,180,0.25);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+        </div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:6px;background:var(--cric-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Stream Locked</div>
+        <div style="font-size:12px;color:var(--subtext);line-height:1.4;margin-bottom:16px;">Join telegram to unlock stream</div>
+        <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" onclick="handleLockJoin()" style="display:block;width:100%;height:42px;line-height:42px;border-radius:14px;background:#0088cc;font-size:14px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 12px rgba(0,136,204,0.3);">Join Telegram</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Player View -->
+  <div id="playerView" style="position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;overflow:hidden;">
+    <header id="playerHeader" class="player-controls-fade" style="position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:linear-gradient(to bottom,rgba(6,8,16,0.95),transparent);z-index:30;">
+      <div id="playerTitle" style="font-size:14px;font-weight:700;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;">Sky Sports Cricket <span style="font-size:11px;color:var(--lite-pink);font-weight:600;margin-left:6px;">by CricXCrate</span></div>
+    </header>
+
+    <div id="player" style="position:relative;width:100%;height:100%;background:#000;user-select:none;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+      <video id="vid" autoplay muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:contain;transform-origin:center;transition:transform 0.05s linear;"></video>
+      <div id="overlay" style="position:absolute;inset:0;z-index:10;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;transition:opacity 0.3s;">
+        <div style="width:36px;height:36px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--lite-pink);animation:spin 0.8s linear infinite;" id="loadSpinner"></div>
+        <div style="font-size:14px;font-weight:500;color:#fff;" id="loadMsg">Connecting to Sky Sports Cricket...</div>
+      </div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+      <div id="playerFooter" class="player-controls-fade" style="position:absolute;bottom:0;left:0;right:0;z-index:20;">
+        <div style="display:flex;flex-direction:column;padding:0 16px 6px;">
+          <div class="timeline-container" id="timelineContainer">
+            <div class="timeline-track">
+              <div class="timeline-buffer" id="timelineBuffer"></div>
+              <div class="timeline-progress" id="timelineProgress"></div>
+            </div>
+            <div class="timeline-thumb" id="timelineThumb"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 16px calc(14px + env(safe-area-inset-bottom,0px));gap:10px;background:linear-gradient(to top,rgba(6,8,16,0.95),transparent);">
+          <button id="bplay" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,0.1);cursor:pointer;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" id="pico"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+          </button>
+          <button id="bmute" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,0.1);cursor:pointer;">
+            <svg id="mico" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+          </button>
+          <div style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:6px;background:rgba(48,209,88,0.2);font-size:11px;font-weight:700;color:var(--faded-green);box-shadow:0 0 10px rgba(48,209,88,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:var(--faded-green);"></span><span>LIVE</span></div>
+          <div style="flex:1;"></div>
+          <button id="bq" style="width:auto;height:34px;border-radius:17px;padding:0 12px;gap:5px;background:var(--dark-blue);border:0.5px solid rgba(255,255,255,0.3);font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;cursor:pointer;box-shadow:0 0 15px var(--dark-blue-glow);">
+            <span id="qlbl">Auto</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="2,3.5 5,7 8,3.5"/></svg>
+          </button>
+          <button id="bfs" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,0.1);cursor:pointer;" title="Fullscreen">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 4H4v5"/><path d="M15 4h5v5"/><path d="M9 20H4v-5"/><path d="M15 20h5v-5"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quality Sheet -->
+  <div id="qsheet-ov" style="position:fixed;inset:0;z-index:99999;background:rgba(6,8,16,0.8);opacity:0;pointer-events:none;transition:opacity 0.25s ease;display:flex;align-items:flex-end;justify-content:center;">
+    <div id="qsheet" style="width:100%;max-width:480px;background:var(--card-bg);border-top-left-radius:32px;border-top-right-radius:32px;border:0.5px solid var(--border-glow);padding:16px 16px calc(24px + var(--safe-b));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);box-shadow:0 0 30px rgba(255,105,180,0.2);">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;margin:0 auto 14px;"></div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);text-align:center;margin-bottom:12px;">Select Stream Quality</div>
+      <div id="qsheet-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <button id="qcancel" style="width:100%;height:48px;border-radius:18px;background:rgba(255,255,255,0.06);font-size:15px;font-weight:600;color:var(--subtext);border:0.5px solid var(--border);cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+<script>
+const STREAM_URL = 'https://live2.domaincdn.cc/livecdn/channel-28.m3u8?auth_key=3000001790329916-0-0-43c89bd2d19d2fc91861c18d3bab3a98';
+let hlsInstance = null;
+let hideControlsTimer = null;
+let lockTimer = null;
+let currentQ = 'Auto';
+let availableLevels = [];
+const $ = id => document.getElementById(id);
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const modal1 = $('tgModal1');
+    modal1.style.display = 'flex';
+    requestAnimationFrame(() => modal1.classList.add('show'));
+  }, 500);
+
+  checkStreamLockTimer();
+  initHlsPlayer(STREAM_URL);
+});
+
+function triggerSecondPopup(){
+  const modal1 = $('tgModal1');
+  const modal2 = $('tgModal2');
+  
+  modal1.classList.remove('show');
+  setTimeout(() => {
+    modal1.style.display = 'none';
+    modal2.style.display = 'flex';
+    requestAnimationFrame(() => {
+      modal2.classList.add('show');
+    });
+  }, 400);
+}
+
+function closeSecondModal(){
+  const modal2 = $('tgModal2');
+  modal2.classList.remove('show');
+  setTimeout(() => {
+    modal2.style.display = 'none';
+  }, 400);
+}
+
+function handleJoinSuccess(){
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  localStorage.setItem('cric_tg_joined_time', Date.now().toString());
+  
+  closeSecondModal();
+  const modal1 = $('tgModal1');
+  modal1.classList.remove('show');
+  setTimeout(() => modal1.style.display = 'none', 400);
+  
+  if(lockTimer) clearTimeout(lockTimer);
+}
+
+function checkStreamLockTimer(){
+  const lastJoined = localStorage.getItem('cric_tg_joined_time');
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  if(!lastJoined || (now - parseInt(lastJoined)) > TWENTY_FOUR_HOURS){
+    lockTimer = setTimeout(() => {
+      showLockPopup();
+    }, 20000); // 20 seconds timer
+  }
+}
+
+function showLockPopup(){
+  const lockModal = $('tgModalLock');
+  const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fsElement) {
+    fsElement.appendChild(lockModal);
+  }
+
+  lockModal.style.display = 'flex';
+  requestAnimationFrame(() => {
+    lockModal.classList.add('show');
+  });
+}
+
+function handleLockJoin(){
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  localStorage.setItem('cric_tg_joined_time', Date.now().toString());
+  
+  const lockModal = $('tgModalLock');
+  lockModal.classList.remove('show');
+  setTimeout(() => {
+    lockModal.style.display = 'none';
+  }, 400);
+}
+
+function initHlsPlayer(url){
+  const vid = $('vid');
+
+  if (Hls.isSupported()) {
+    if (hlsInstance) {
+      hlsInstance.destroy();
+    }
+    
+    hlsInstance = new Hls({
+      lowLatencyMode: true,
+      backBufferLength: 30,
+      maxBufferLength: 30,
+      liveSyncDurationCount: 3
+    });
+
+    hlsInstance.loadSource(url);
+    hlsInstance.attachMedia(vid);
+
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+      availableLevels = data.levels;
+      vid.muted = true;
+      updateMuteIcon();
+      vid.play().catch(() => {});
+      $('overlay').style.opacity = '0';$('overlay').style.pointerEvents = 'none';
+    });
+
+    hlsInstance.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+      if (hlsInstance.currentLevel === -1) {
+        $('qlbl').textContent = 'Auto';
+      } else {
+        const lvl = availableLevels[data.level];
+        if (lvl && lvl.height) {
+          $('qlbl').textContent = lvl.height + 'p';
+        }
+      }
+    });
+
+    hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            hlsInstance.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            hlsInstance.recoverMediaError();
+            break;
+          default:
+            hlsInstance.destroy();
+            $('loadSpinner').style.display = 'none';$('loadMsg').textContent = "Stream connection failed.";
+            break;
+        }
+      }
+    });
+
+  } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
+    vid.src = url;
+    vid.muted = true;
+    updateMuteIcon();
+    vid.addEventListener('loadedmetadata', () => {
+      vid.play().catch(() => {});
+      $('overlay').style.opacity = '0';$('overlay').style.pointerEvents = 'none';
+    });
+    vid.addEventListener('error', () => {
+      $('loadSpinner').style.display = 'none';$('loadMsg').textContent = "Stream link is currently offline.";
+    });
+  }
+}
+
+const vid = $('vid');$('bplay').addEventListener('click', () => {
+  if(vid.paused) vid.play().catch(()=>{}); else vid.pause();
+});
+vid.addEventListener('play', () => $('pico').innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/>');
+vid.addEventListener('pause', () => $('pico').innerHTML = '<path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11-6.86a1 1 0 0 0 0-1.72L9.5 4.27A1 1 0 0 0 8 5.14z" fill="currentColor"/>');
+
+$('bmute').addEventListener('click', () => {
+  vid.muted = !vid.muted;
+  updateMuteIcon();
+});
+
+function updateMuteIcon(){
+  if(vid.muted){
+    $('mico').innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+  } else {
+    $('mico').innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+  }
+}
+
+$('bq').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!hlsInstance || availableLevels.length === 0) return;
+
+  let listHtml = `<button onclick="switchQuality(-1)" style="width:100%;height:48px;border-radius:18px;background:${hlsInstance.currentLevel===-1?'var(--dark-blue)':'rgba(255,255,255,0.06)'};color:#fff;font-size:15px;font-weight:${hlsInstance.currentLevel===-1?'700':'500'};display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">Auto ${hlsInstance.currentLevel===-1?'✓':''}</button>`;
+
+  availableLevels.forEach((lvl, idx) => {
+    const qName = lvl.height ? lvl.height + 'p' : `Level ${idx}`;
+    const isActive = hlsInstance.currentLevel === idx;
+    listHtml += `<button onclick="switchQuality(${idx})" style="width:100%;height:48px;border-radius:18px;background:${isActive?'var(--dark-blue)':'rgba(255,255,255,0.06)'};color:#fff;font-size:15px;font-weight:${isActive?'700':'500'};display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">${qName} ${isActive?'✓':''}</button>`;
+  });
+
+  $('qsheet-list').innerHTML = listHtml;
+  
+  const ov = $('qsheet-ov');
+  const sheet = $('qsheet');
+  ov.style.opacity = '1';
+  ov.style.pointerEvents = 'auto';
+  sheet.style.transform = 'translateY(0)';
+});
+
+window.switchQuality = function(levelIdx){
+  if (hlsInstance) {
+    hlsInstance.currentLevel = levelIdx;
+  }
+  closeQSheet();
+};
+
+function closeQSheet(){
+  const ov = $('qsheet-ov');
+  const sheet = $('qsheet');
+  ov.style.opacity = '0';
+  ov.style.pointerEvents = 'none';
+  sheet.style.transform = 'translateY(100%)';
+}
+
+$('qcancel').addEventListener('click', closeQSheet);$('qsheet-ov').addEventListener('click', (e) => {
+  if(e.target === $('qsheet-ov')) closeQSheet();
+});
+
+$('bfs').addEventListener('click', () => {
+  const pContainer = $('playerView');
+  if(!document.fullscreenElement && !document.webkitFullscreenElement){
+    if(pContainer.requestFullscreen) {
+      pContainer.requestFullscreen().then(() => {
+        if(screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      }).catch(()=>{});
+    } else if(pContainer.webkitRequestFullscreen) {
+      pContainer.webkitRequestFullscreen();
+    }
+  } else {
+    if(document.exitFullscreen) {
+      document.exitFullscreen().catch(()=>{});
+      if(screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } else if(document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+});
+
+let currentZoom = 1;
+let initialDistance = null;
+
+$('player').addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    initialDistance = Math.hypot(
+      e.touches[0].pageX - e.touches[1].pageX,
+      e.touches[0].pageY - e.touches[1].pageY
+    );
+  }
+}, { passive: true });
+
+$('player').addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2 && initialDistance !== null) {
+    const currentDistance = Math.hypot(
+      e.touches[0].pageX - e.touches[1].pageX,
+      e.touches[0].pageY - e.touches[1].pageY
+    );
+    const factor = currentDistance / initialDistance;
+    currentZoom = Math.min(Math.max(1, currentZoom * (factor > 1 ? 1.02 : 0.98)), 4);
+    vid.style.transform = `scale(${currentZoom})`;
+  }
+}, { passive: true });
+
+$('player').addEventListener('touchend', (e) => {
+  if (e.touches.length < 2) {
+    initialDistance = null;
+  }
+});
+
+function showControls(){
+  $('playerHeader').classList.remove('hidden');$('playerFooter').classList.remove('hidden');
+  resetControlsTimer();
+}
+
+function resetControlsTimer(){
+  clearTimeout(hideControlsTimer);
+  hideControlsTimer = setTimeout(() => {
+    if(document.fullscreenElement || document.webkitFullscreenElement){
+      $('playerHeader').classList.add('hidden');$('playerFooter').classList.add('hidden');
+    }
+  }, 3000);
+}
+
+$('player').addEventListener('click', (e) => {
+  if(e.target === vid || e.target === $('player')) {
+    const isHidden = $('playerHeader').classList.contains('hidden');
+    if(isHidden){
+      showControls();
+    } else {
+      clearTimeout(hideControlsTimer);
+      $('playerHeader').classList.add('hidden');$('playerFooter').classList.add('hidden');
+    }
+  }
+});
+</script>
+</body></html>
