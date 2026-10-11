@@ -8,9 +8,9 @@
 <title>FOX | CRICXCRATE</title>
 <link rel="canonical" href="https://ohhocric.pages.dev/">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Load Artplayer & Hls.js Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/artplayer@latest/dist/artplayer.js"></script>
+<!-- Load Shaka Player UI Styles & Scripts -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/controls.css" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/shaka-player.ui.js" crossorigin="anonymous"></script>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;background:#FBF2DA;font-family:'Plus Jakarta Sans',sans-serif;color:#1A1A1A;overflow-x:hidden}
@@ -27,11 +27,7 @@
   .video-card{background:#FFFFFF;border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,0.06);box-shadow:0 10px 25px rgba(0,0,0,0.04);width:100%}
 
   .video-container-wrap{width:100%;aspect-ratio:16/9;background:#000;position:relative;overflow:hidden}
-  .artplayer-app{width:100%;height:100%;display:block}
-
-  .art-control { border-radius: 50% !important; }
-  .art-icon { border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; }
-  .art-btn { border-radius: 50% !important; }
+  #video{width:100%;height:100%;display:block}
 
   #loading-screen{position:absolute;inset:0;background:#09090e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;transition:opacity 0.2s ease}
   .loader{position:relative;width:40px;height:40px}
@@ -101,12 +97,12 @@
 
   <div class="main-content-single">
     <div class="video-card">
-      <div class="video-container-wrap" id="video-container">
+      <div class="video-container-wrap" id="video-container" data-shaka-player-container>
         <div id="loading-screen">
           <div class="loader"><div class="loader-ring"></div></div>
           <div class="loading-label">Connecting...</div>
         </div>
-        <div class="artplayer-app" id="artplayer-container"></div>
+        <video autoplay id="video" data-shaka-player crossorigin="anonymous" playsinline></video>
       </div>
 
       <div class="video-details">
@@ -197,7 +193,7 @@
 <div class="custom-toast" id="custom-toast-alert">Match link copied to clipboard!</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   'use strict';
 
   const TELEGRAM_LINK = 'https://t.me/+B-0UtpcqY3QxYTll';
@@ -211,15 +207,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const streamUrl = "https://edge.cowedd4855ws.sbs/premium589/index.m3u8?_=1791731191914";
+  const video = document.getElementById('video');
+  const container = document.getElementById('video-container');
+  
+  shaka.polyfill.installAll();
+  const player = new shaka.Player(video);
+  const ui = new shaka.ui.Overlay(player, container, video);
+  ui.configure({
+    controlPanelElements: ['play_pause', 'time_and_duration', 'spacer', 'resolution', 'mute', 'volume', 'fullscreen', 'overflow_menu']
+  });
+
   const streamLockOverlay = document.getElementById('stream-lock-overlay');
   const lockJoinBtn = document.getElementById('lock-join-btn');
   let lockTimerTriggered = false;
-  let artInstance = null;
-  let hlsInstance = null;
 
   function triggerStreamLockCheck() {
     if (lockTimerTriggered) return;
-    
     const lastLockTime = localStorage.getItem('cricxcrate_lock_timestamp');
     const currentTime = new Date().getTime();
     const twentyFourHours = 24 * 60 * 60 * 1000;
@@ -238,73 +241,13 @@ document.addEventListener('DOMContentLoaded', function() {
     streamLockOverlay.classList.remove('show');
   };
 
-  function initPlayer() {
-    if (artInstance) {
-      artInstance.destroy(false);
-      artInstance = null;
-    }
-    if (hlsInstance) {
-      hlsInstance.destroy();
-      hlsInstance = null;
-    }
-
-    artInstance = new Artplayer({
-      container: '#artplayer-container',
-      url: streamUrl,
-      type: 'm3u8',
-      isLive: true,
-      fullscreen: true,
-      fullscreenWeb: true,
-      volume: 0.7,
-      muted: false,
-      autoplay: true,
-      pip: true,
-      setting: true,
-      loop: false,
-      flip: true,
-      aspectRatio: true,
-      playbackRate: true,
-      playsInline: true,
-      airplay: true,
-      customType: {
-        m3u8: function (video, url, art) {
-          if (Hls.isSupported()) {
-            hlsInstance = new Hls({ autoStartLoad: true, startLevel: -1 });
-            hlsInstance.loadSource(url);
-            hlsInstance.attachMedia(video);
-            hlsInstance.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-              hideLoader();
-              triggerStreamLockCheck();
-              const qualities = data.levels.map((level, index) => ({
-                html: level.height ? `${level.height}p` : `${Math.round(level.bitrate / 1000)} kbps`,
-                level: index,
-              }));
-              qualities.unshift({ html: 'Auto', level: -1 });
-              art.setting.add({
-                width: 150,
-                html: 'Quality',
-                tooltip: 'Auto',
-                selector: qualities,
-                onSelect: function (item) {
-                  hlsInstance.currentLevel = item.level;
-                  return item.html;
-                },
-              });
-            });
-            art.on('destroy', () => hlsInstance.destroy());
-          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-            video.addEventListener('loadedmetadata', () => {
-              hideLoader();
-              triggerStreamLockCheck();
-            }, { once: true });
-          }
-        }
-      }
-    });
+  try {
+    await player.load(streamUrl);
+    hideLoader();
+    triggerStreamLockCheck();
+  } catch (e) {
+    console.error('Error loading video with Shaka Player', e);
   }
-
-  initPlayer();
 
   const toast = document.getElementById('custom-toast-alert');
   const shareBtn = document.getElementById('share-stream-btn');
