@@ -1,534 +1,274 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#060810">
-  <meta name="referrer" content="no-referrer">
-  <title>Sky Sports Cricket HD - CricXCrate</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
-  <style>
-    :root {
-      --bg: #060810;
-      --card-bg: #101422;
-      --border: rgba(255, 105, 180, 0.2);
-      --border-glow: rgba(255, 105, 180, 0.35);
-      --text: #FFFFFF;
-      --subtext: rgba(255, 255, 255, 0.65);
-      --lite-pink: #FF69B4;
-      --lite-pink-glow: rgba(255, 105, 180, 0.4);
-      --faded-green: rgba(48, 209, 88, 0.85);
-      --dark-blue: #0A84FF;
-      --dark-blue-glow: rgba(10, 132, 275, 0.4);
-      --cric-gradient: linear-gradient(135deg, #FF69B4 0%, #FF1493 50%, #0A84FF 100%);
-      --safe-t: env(safe-area-inset-top, 0px);
-      --safe-b: env(safe-area-inset-bottom, 0px);
-    }
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif; overflow: hidden; touch-action: manipulation; }
-    button { font: inherit; cursor: pointer; border: 0; background: none; position: relative; z-index: 5; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="description" content="Watch Live Cricket Streaming Free On CricXCrate.">
+<meta name="theme-color" content="#FBF2DA">
+<title>FOX | CRICXCRATE</title>
+<link rel="canonical" href="https://ohhocric.pages.dev/">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;background:#FBF2DA;font-family:'Plus Jakarta Sans',sans-serif;color:#1A1A1A;overflow-x:hidden}
 
-    .floating-tg {
-      position: fixed;
-      bottom: 80px; right: 20px;
-      width: 52px; height: 52px;
-      background: linear-gradient(135deg, #0088cc 0%, #00aced 100%);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 15px rgba(0, 136, 204, 0.3);
-      z-index: 99999999; cursor: pointer;
-      animation: floatBadge 3s ease-in-out infinite;
-      text-decoration: none;
-      border: 0.5px solid rgba(255,255,255,0.2);
-      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .floating-tg:hover { transform: scale(1.1); }
-    .floating-tg svg {
-      width: 26px; height: 26px; fill: #fff;
-      transform: translateX(1px);
-    }
-    @keyframes floatBadge {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
+  .app-layout{display:flex;flex-direction:column;min-height:100vh}
+  .hero-section{background-color:#FBF2DA;padding:12px 5% 6px 5%;display:flex;flex-direction:column;gap:10px;max-width:1400px;margin:0 auto;width:100%}
+  .top-bar{display:flex;justify-content:space-between;align-items:center;width:100%}
+  .brand{font-size:18px;font-weight:800;color:#1A1A1A;text-decoration:none;letter-spacing:0.5px}
+  .live-badge{display:flex;align-items:center;gap:5px;background:rgba(0,136,204,0.12);color:#0088cc;font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(0,136,204,0.25);text-transform:uppercase}
+  .live-dot{width:5px;height:5px;background-color:#0088cc;border-radius:50%;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.85)}}
 
-    .modal-overlay {
-      position: fixed; inset: 0; z-index: 2147483647;
-      background: rgba(6, 8, 16, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      display: flex; align-items: center; justify-content: center;
-      padding: 16px; opacity: 0; pointer-events: none;
-      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .modal-overlay.show { opacity: 1; pointer-events: auto; }
-    
-    .modal-card {
-      position: relative;
-      background: var(--card-bg); border-radius: 24px;
-      border: 0.5px solid var(--border);
-      width: 100%; max-width: 300px;
-      padding: 22px 18px; text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 105, 180, 0.02);
-      overflow: hidden;
-      transform: scale(0.9) translateY(15px);
-      transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .modal-overlay.show .modal-card { transform: scale(1) translateY(0); }
+  .main-content-single{padding:6px 5% 12px 5%;max-width:1100px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:10px}
+  .video-card{background:#FFFFFF;border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,0.06);box-shadow:0 10px 25px rgba(0,0,0,0.04);width:100%}
 
-    .water-fill {
-      position: absolute;
-      bottom: 0; left: -50%;
-      width: 200%; height: 100%;
-      background: linear-gradient(180deg, rgba(255, 105, 180, 0) 0%, rgba(255, 105, 180, 0.04) 100%);
-      z-index: 0; pointer-events: none;
-      animation: waveMotion 6s ease-in-out infinite alternate;
-    }
-    @keyframes waveMotion {
-      0% { transform: translateY(50px) rotate(0deg); }
-      100% { transform: translateY(15px) rotate(360deg); }
-    }
+  .video-container-wrap{width:100%;aspect-ratio:16/9;background:#000;position:relative;overflow:hidden}
+  .video-iframe{width:100%;height:100%;border:none;display:block}
 
-    .modal-content { position: relative; z-index: 1; }
-    .player-controls-fade { transition: opacity 0.4s ease; }
-    .player-controls-fade.hidden { opacity: 0; pointer-events: none; }
+  .video-details{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .video-title-block{display:flex;flex-direction:column;gap:2px}
+  .video-title-block h3{font-size:15px;font-weight:700;color:#1A1A1A;margin-bottom:2px}
+  .video-title-block p{font-size:11.5px;color:#555555}
+  
+  .controls-right{display:flex;align-items:center;gap:10px}
 
-    .timeline-container {
-      position: relative;
-      width: 100%;
-      height: 22px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-    .timeline-track {
-      position: relative;
-      width: 100%;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 3px;
-      overflow: hidden;
-      transition: height 0.15s ease;
-    }
-    .timeline-container:hover .timeline-track { height: 8px; }
-    .timeline-buffer {
-      position: absolute; top: 0; left: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.35); border-radius: 3px; width: 0%;
-    }
-    .timeline-progress {
-      position: absolute; top: 0; left: 0; bottom: 0;
-      background: var(--lite-pink); border-radius: 3px; width: 100%;
-      box-shadow: 0 0 8px var(--lite-pink-glow);
-    }
-    .timeline-thumb {
-      position: absolute; top: 50%; left: 100%;
-      transform: translate(-50%, -50%);
-      width: 12px; height: 12px; background: #fff; border-radius: 50%;
-      box-shadow: 0 0 8px rgba(255, 105, 180, 0.6);
-      pointer-events: none;
-    }
-  </style>
+  .share-btn{background:rgba(0,136,204,0.08);border:1px solid rgba(0,136,204,0.25);color:#0088cc;padding:6px 14px;border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .share-btn svg{width:13px;height:13px;fill:#0088cc}
+
+  .content-board-section{background-color:#6A7357;padding:24px 5%;width:100%;border-top-left-radius:24px;border-top-right-radius:24px;margin-top:10px}
+  .section-header{text-align:center;margin-bottom:16px}
+  .section-header h2{font-size:20px;font-weight:700;color:#FFFFFF;margin-bottom:2px}
+  .section-header p{font-size:12px;color:rgba(255,255,255,0.8)}
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;max-width:1100px;margin:0 auto}
+  .info-card{background-color:#FFFFFF;padding:16px;border-radius:16px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 6px 16px rgba(0,0,0,0.05)}
+  .info-card h3{font-size:15px;font-weight:700;color:#1A1A1A;margin-bottom:4px}
+  .info-card p{font-size:12px;color:#555555;line-height:1.4;margin-bottom:12px}
+  .card-footer{border-top:1px solid rgba(0,0,0,0.06);padding-top:10px;display:flex;justify-content:space-between;align-items:center}
+  .card-meta{font-size:11px;color:#888}
+  .tg-card-btn{background:#0088cc;color:#fff;text-decoration:none;padding:7px 14px;border-radius:10px;font-size:11.5px;font-weight:700;border:none;cursor:pointer}
+  .req-card-btn{background:#111827;color:#fff;text-decoration:none;padding:7px 14px;border-radius:10px;font-size:11.5px;font-weight:700;border:none;cursor:pointer}
+
+  .float-tg{position:fixed;bottom:20px;right:20px;width:50px;height:50px;background:#0088cc;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,136,204,0.4);z-index:9999;cursor:pointer;border:none;transition:transform 0.2s}
+  .float-tg:active{transform:scale(0.9)}
+  .float-tg svg{width:24px;height:24px;fill:#fff}
+
+  .lock-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:999999;padding:20px;opacity:0;visibility:hidden;transition:all 0.3s ease}
+  .lock-overlay.show{opacity:1;visibility:visible}
+  .lock-card{background:#FFFFFF;border-radius:28px;padding:36px 28px;width:100%;max-width:420px;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.25);transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;flex-direction:column;gap:16px}
+  .lock-overlay.show .lock-card{transform:scale(1)}
+  .lock-icon{width:50px;height:50px;background:rgba(0,136,204,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto}
+  .lock-icon svg{width:24px;height:24px;fill:#0088cc}
+  .lock-card h3{font-size:22px;font-weight:800;color:#1A1A1A}
+  .lock-card p{font-size:14px;color:#555555;line-height:1.5}
+  .lock-btn{background:#0088cc;color:#fff;text-decoration:none;padding:12px 20px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;border:none;box-shadow:0 4px 15px rgba(0, 136, 204, 0.4)}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;opacity:0;visibility:hidden;transition:opacity 0.25s ease}
+  .overlay.show{opacity:1;visibility:visible}
+  .popup-card{background:#FFFFFF;border-radius:28px;padding:36px 28px;width:100%;max-width:420px;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.25);transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);display:flex;flex-direction:column;gap:16px}
+  .overlay.show .popup-card{transform:scale(1)}
+  .popup-card h3{font-size:22px;font-weight:800;color:#1A1A1A}
+  .popup-card p{font-size:14px;color:#555555;line-height:1.5}
+  .popup-actions{display:flex;gap:12px;margin-top:8px;align-items:center;justify-content:center}
+  .popup-btn-cancel{background:#F3F4F6;color:#555;border:1px solid rgba(0,0,0,0.08);padding:8px 14px;border-radius:10px;font-weight:600;font-size:12px;cursor:pointer}
+  .popup-btn-join{background:#0088cc;color:#fff;padding:12px 20px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;border:none;flex:1;box-shadow:0 4px 15px rgba(0, 136, 204, 0.4)}
+
+  .custom-toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%) translateY(30px);background:rgba(26,26,26,0.95);color:#fff;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:600;opacity:0;transition:transform 0.2s ease,opacity 0.2s ease;pointer-events:none;z-index:999999}
+  .custom-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
 </head>
 <body>
-
-  <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" class="floating-tg" title="Join Telegram">
-    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
-  </a>
-
-  <!-- 1st Compact Modal -->
-  <div id="tgModal1" class="modal-overlay">
-    <div class="modal-card">
-      <div class="water-fill"></div>
-      <div class="modal-content">
-        <button onclick="triggerSecondPopup()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--subtext);display:grid;place-items:center;font-size:12px;cursor:pointer;border:0.5px solid var(--border);">✕</button>
-        <div style="width:46px;height:46px;border-radius:16px;background:var(--cric-gradient);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 15px rgba(255,105,180,0.25);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
-        </div>
-        <div style="font-size:16px;font-weight:800;margin-bottom:6px;background:var(--cric-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CricXCrate</div>
-        <div style="font-size:12px;color:var(--subtext);line-height:1.4;margin-bottom:16px;">Join our official Telegram channel for uninterrupted Sky Sports Cricket live stream links.</div>
-        <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" onclick="handleJoinSuccess()" style="display:block;width:100%;height:42px;line-height:42px;border-radius:14px;background:#0088cc;font-size:14px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 12px rgba(0,136,204,0.3);">Join Telegram</a>
-      </div>
+<div class="app-layout">
+  <div class="hero-section">
+    <div class="top-bar">
+      <a href="#" class="brand">CricXCrate</a>
+      <div class="live-badge"><div class="live-dot"></div> LIVE STREAM</div>
     </div>
   </div>
 
-  <!-- 2nd Compact Modal -->
-  <div id="tgModal2" class="modal-overlay">
-    <div class="modal-card">
-      <div class="water-fill"></div>
-      <div class="modal-content">
-        <button onclick="closeSecondModal()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);color:var(--subtext);display:grid;place-items:center;font-size:12px;cursor:pointer;border:0.5px solid var(--border);">✕</button>
-        <div style="width:46px;height:46px;border-radius:16px;background:var(--cric-gradient);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 15px rgba(255,105,180,0.25);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
-        </div>
-        <div style="font-size:16px;font-weight:800;margin-bottom:6px;background:var(--cric-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Wait, Don't Miss Out!</div>
-        <div style="font-size:12px;color:var(--subtext);line-height:1.4;margin-bottom:16px;">Join our Telegram channel now to make sure you never miss a match update or stream link!</div>
-        <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" onclick="handleJoinSuccess()" style="display:block;width:100%;height:42px;line-height:42px;border-radius:14px;background:#0088cc;font-size:14px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 12px rgba(0,136,204,0.3);">Join Now</a>
+  <div class="main-content-single">
+    <div class="video-card">
+      <div class="video-container-wrap">
+        <iframe class="video-iframe" src="https://dlive.sx/watch.php?id=823" sandbox="allow-scripts allow-same-origin allow-presentation allow-autoplay" allowfullscreen allow="autoplay; encrypted-media"></iframe>
       </div>
-    </div>
-  </div>
 
-  <!-- 3rd Lock Modal -->
-  <div id="tgModalLock" class="modal-overlay">
-    <div class="modal-card" style="box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);">
-      <div class="water-fill"></div>
-      <div class="modal-content">
-        <div style="width:46px;height:46px;border-radius:16px;background:var(--cric-gradient);margin:0 auto 12px;display:grid;place-items:center;box-shadow:0 0 15px rgba(255,105,180,0.25);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1 .54-1.42.53-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.55 3.91-1.67 4.72-1.96 5.25-1.97.12 0 .39.03.56.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+      <div class="video-details">
+        <div class="video-title-block">
+          <h3>FOX Live Stream</h3>
+          <p>Free Live Cricket Streaming • High Definition Engine</p>
         </div>
-        <div style="font-size:16px;font-weight:800;margin-bottom:6px;background:var(--cric-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Stream Locked</div>
-        <div style="font-size:12px;color:var(--subtext);line-height:1.4;margin-bottom:16px;">Join telegram to unlock stream</div>
-        <a href="https://t.me/+td-BEF1c2B1kMjk1" target="_blank" onclick="handleLockJoin()" style="display:block;width:100%;height:42px;line-height:42px;border-radius:14px;background:#0088cc;font-size:14px;font-weight:700;color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 12px rgba(0,136,204,0.3);">Join Telegram</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Video Player View -->
-  <div id="playerView" style="position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;overflow:hidden;">
-    <header id="playerHeader" class="player-controls-fade" style="position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:linear-gradient(to bottom,rgba(6,8,16,0.95),transparent);z-index:30;">
-      <div id="playerTitle" style="font-size:14px;font-weight:700;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;">Sky Sports Cricket <span style="font-size:11px;color:var(--lite-pink);font-weight:600;margin-left:6px;">by CricXCrate</span></div>
-    </header>
-
-    <div id="player" style="position:relative;width:100%;height:100%;background:#000;user-select:none;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-      <video id="vid" autoplay muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:contain;transform-origin:center;transition:transform 0.05s linear;"></video>
-      <div id="overlay" style="position:absolute;inset:0;z-index:10;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;transition:opacity 0.3s;">
-        <div style="width:36px;height:36px;border-radius:50%;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--lite-pink);animation:spin 0.8s linear infinite;" id="loadSpinner"></div>
-        <div style="font-size:14px;font-weight:500;color:#fff;" id="loadMsg">Connecting to Sky Sports Cricket...</div>
-      </div>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-
-      <div id="playerFooter" class="player-controls-fade" style="position:absolute;bottom:0;left:0;right:0;z-index:20;">
-        <div style="display:flex;flex-direction:column;padding:0 16px 6px;">
-          <div class="timeline-container" id="timelineContainer">
-            <div class="timeline-track">
-              <div class="timeline-buffer" id="timelineBuffer"></div>
-              <div class="timeline-progress" id="timelineProgress"></div>
-            </div>
-            <div class="timeline-thumb" id="timelineThumb"></div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;padding:0 16px calc(14px + env(safe-area-inset-bottom,0px));gap:10px;background:linear-gradient(to top,rgba(6,8,16,0.95),transparent);">
-          <button id="bplay" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,0.1);cursor:pointer;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" id="pico"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
-          </button>
-          <button id="bmute" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,0.1);cursor:pointer;">
-            <svg id="mico" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-          </button>
-          <div style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:6px;background:rgba(48,209,88,0.2);font-size:11px;font-weight:700;color:var(--faded-green);box-shadow:0 0 10px rgba(48,209,88,0.3);"><span style="width:6px;height:6px;border-radius:50%;background:var(--faded-green);"></span><span>LIVE</span></div>
-          <div style="flex:1;"></div>
-          <button id="bq" style="width:auto;height:34px;border-radius:17px;padding:0 12px;gap:5px;background:var(--dark-blue);border:0.5px solid rgba(255,255,255,0.3);font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;cursor:pointer;box-shadow:0 0 15px var(--dark-blue-glow);">
-            <span id="qlbl">Auto</span>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="2,3.5 5,7 8,3.5"/></svg>
-          </button>
-          <button id="bfs" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(255,255,255,0.1);cursor:pointer;" title="Fullscreen">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 4H4v5"/><path d="M15 4h5v5"/><path d="M9 20H4v-5"/><path d="M15 20h5v-5"/></svg>
+        <div class="controls-right">
+          <button class="share-btn" id="share-stream-btn" title="Share Stream Link">
+            <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+            Share
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Quality Sheet -->
-  <div id="qsheet-ov" style="position:fixed;inset:0;z-index:99999;background:rgba(6,8,16,0.8);opacity:0;pointer-events:none;transition:opacity 0.25s ease;display:flex;align-items:flex-end;justify-content:center;">
-    <div id="qsheet" style="width:100%;max-width:480px;background:var(--card-bg);border-top-left-radius:32px;border-top-right-radius:32px;border:0.5px solid var(--border-glow);padding:16px 16px calc(24px + var(--safe-b));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);box-shadow:0 0 30px rgba(255,105,180,0.2);">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;margin:0 auto 14px;"></div>
-      <div style="font-size:14px;font-weight:700;color:var(--text);text-align:center;margin-bottom:12px;">Select Stream Quality</div>
-      <div id="qsheet-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-      <button id="qcancel" style="width:100%;height:48px;border-radius:18px;background:rgba(255,255,255,0.06);font-size:15px;font-weight:600;color:var(--subtext);border:0.5px solid var(--border);cursor:pointer;">Cancel</button>
+  <div class="content-board-section">
+    <div class="section-header">
+      <h2>Community Hub</h2>
+      <p>Explore official channels, backup links, and content requests</p>
+    </div>
+    <div class="cards-grid">
+      <div class="info-card">
+        <div>
+          <h3>Official Telegram Channel</h3>
+          <p>Never miss a stream update. Get direct notifications and reliable links instantly.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">Active Community</span>
+          <button class="tg-card-btn" id="btn-banner-tg">Join Now</button>
+        </div>
+      </div>
+      <div class="info-card">
+        <div>
+          <h3>Request Content</h3>
+          <p>Can't find a specific match or show? Drop your requests and we'll provide it for you.</p>
+        </div>
+        <div class="card-footer">
+          <span class="card-meta">24/7 Support</span>
+          <button class="req-card-btn" id="btn-request-content">Request →</button>
+        </div>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- 1st Popup -->
+<div class="overlay" id="telegram-overlay-1">
+  <div class="popup-card">
+    <h3>Join Our Telegram</h3>
+    <p>Get instant access to free high-definition cricket streams, live match updates, and exclusive backup links without buffering.</p>
+    <div class="popup-actions">
+      <button class="popup-btn-cancel" id="popup-1-cancel">Later</button>
+      <button class="popup-btn popup-btn-join" id="popup-1-join">Join Channel →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2nd Popup -->
+<div class="overlay" id="telegram-overlay-2">
+  <div class="popup-card">
+    <h3>Don't Miss Out!</h3>
+    <p>Join our exclusive VIP Telegram network right now to unlock ultra-fast servers, HD streams, and special community requests without any interruptions.</p>
+    <div class="popup-actions">
+      <button class="popup-btn-cancel" id="popup-2-cancel">Close</button>
+      <button class="popup-btn popup-btn-join" id="popup-2-join">Join VIP Channel Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3rd Strict 24-Hour Stream Lock Popup -->
+<div class="lock-overlay" id="stream-lock-overlay">
+  <div class="lock-card">
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+    </div>
+    <h3>Channel Lock Notice</h3>
+    <p>Must join channel to watch free cricket matches without interruption!</p>
+    <a href="https://t.me/+B-0UtpcqY3QxYTll" target="_blank" class="lock-btn" id="lock-join-btn">Join Telegram Channel</a>
+  </div>
+</div>
+
+<button class="float-tg" id="float-tg-btn" title="Join Telegram">
+  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.73-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.06-.78 4.16-1.82 6.94-3.02 8.34-3.61 3.97-1.66 4.79-1.95 5.33-1.96.12 0 .38.03.55.17.14.12.18.28.2.45z"/></svg>
+</button>
+
+<div class="custom-toast" id="custom-toast-alert">Match link copied to clipboard!</div>
+
 <script>
-const STREAM_URL = 'https://live2.domaincdn.cc/livecdn/channel-28.m3u8?auth_key=3000001790329916-0-0-43c89bd2d19d2fc91861c18d3bab3a98';
-let hlsInstance = null;
-let hideControlsTimer = null;
-let lockTimer = null;
-let currentQ = 'Auto';
-let availableLevels = [];
-const $ = id => document.getElementById(id);
+document.addEventListener('DOMContentLoaded', function() {
+  'use strict';
 
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const modal1 = $('tgModal1');
-    modal1.style.display = 'flex';
-    requestAnimationFrame(() => modal1.classList.add('show'));
-  }, 500);
+  const TELEGRAM_LINK = 'https://t.me/+B-0UtpcqY3QxYTll';
+  const streamLockOverlay = document.getElementById('stream-lock-overlay');
+  const lockJoinBtn = document.getElementById('lock-join-btn');
+  let lockTimerTriggered = false;
 
-  checkStreamLockTimer();
-  initHlsPlayer(STREAM_URL);
-});
-
-function triggerSecondPopup(){
-  const modal1 = $('tgModal1');
-  const modal2 = $('tgModal2');
-  
-  modal1.classList.remove('show');
-  setTimeout(() => {
-    modal1.style.display = 'none';
-    modal2.style.display = 'flex';
-    requestAnimationFrame(() => {
-      modal2.classList.add('show');
-    });
-  }, 400);
-}
-
-function closeSecondModal(){
-  const modal2 = $('tgModal2');
-  modal2.classList.remove('show');
-  setTimeout(() => {
-    modal2.style.display = 'none';
-  }, 400);
-}
-
-function handleJoinSuccess(){
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-  localStorage.setItem('cric_tg_joined_time', Date.now().toString());
-  
-  closeSecondModal();
-  const modal1 = $('tgModal1');
-  modal1.classList.remove('show');
-  setTimeout(() => modal1.style.display = 'none', 400);
-  
-  if(lockTimer) clearTimeout(lockTimer);
-}
-
-function checkStreamLockTimer(){
-  const lastJoined = localStorage.getItem('cric_tg_joined_time');
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-  const now = Date.now();
-
-  if(!lastJoined || (now - parseInt(lastJoined)) > TWENTY_FOUR_HOURS){
-    lockTimer = setTimeout(() => {
-      showLockPopup();
-    }, 20000); // 20 seconds timer
-  }
-}
-
-function showLockPopup(){
-  const lockModal = $('tgModalLock');
-  const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
-  if (fsElement) {
-    fsElement.appendChild(lockModal);
-  }
-
-  lockModal.style.display = 'flex';
-  requestAnimationFrame(() => {
-    lockModal.classList.add('show');
-  });
-}
-
-function handleLockJoin(){
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-  localStorage.setItem('cric_tg_joined_time', Date.now().toString());
-  
-  const lockModal = $('tgModalLock');
-  lockModal.classList.remove('show');
-  setTimeout(() => {
-    lockModal.style.display = 'none';
-  }, 400);
-}
-
-function initHlsPlayer(url){
-  const vid = $('vid');
-
-  if (Hls.isSupported()) {
-    if (hlsInstance) {
-      hlsInstance.destroy();
-    }
+  function triggerStreamLockCheck() {
+    if (lockTimerTriggered) return;
     
-    hlsInstance = new Hls({
-      lowLatencyMode: true,
-      backBufferLength: 30,
-      maxBufferLength: 30,
-      liveSyncDurationCount: 3
-    });
+    const lastLockTime = localStorage.getItem('cricxcrate_lock_timestamp');
+    const currentTime = new Date().getTime();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
 
-    hlsInstance.loadSource(url);
-    hlsInstance.attachMedia(vid);
-
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-      availableLevels = data.levels;
-      vid.muted = true;
-      updateMuteIcon();
-      vid.play().catch(() => {});
-      $('overlay').style.opacity = '0';$('overlay').style.pointerEvents = 'none';
-    });
-
-    hlsInstance.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-      if (hlsInstance.currentLevel === -1) {
-        $('qlbl').textContent = 'Auto';
-      } else {
-        const lvl = availableLevels[data.level];
-        if (lvl && lvl.height) {
-          $('qlbl').textContent = lvl.height + 'p';
-        }
-      }
-    });
-
-    hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            hlsInstance.startLoad();
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            hlsInstance.recoverMediaError();
-            break;
-          default:
-            hlsInstance.destroy();
-            $('loadSpinner').style.display = 'none';$('loadMsg').textContent = "Stream connection failed.";
-            break;
-        }
-      }
-    });
-
-  } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
-    vid.src = url;
-    vid.muted = true;
-    updateMuteIcon();
-    vid.addEventListener('loadedmetadata', () => {
-      vid.play().catch(() => {});
-      $('overlay').style.opacity = '0';$('overlay').style.pointerEvents = 'none';
-    });
-    vid.addEventListener('error', () => {
-      $('loadSpinner').style.display = 'none';$('loadMsg').textContent = "Stream link is currently offline.";
-    });
-  }
-}
-
-const vid = $('vid');$('bplay').addEventListener('click', () => {
-  if(vid.paused) vid.play().catch(()=>{}); else vid.pause();
-});
-vid.addEventListener('play', () => $('pico').innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/>');
-vid.addEventListener('pause', () => $('pico').innerHTML = '<path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11-6.86a1 1 0 0 0 0-1.72L9.5 4.27A1 1 0 0 0 8 5.14z" fill="currentColor"/>');
-
-$('bmute').addEventListener('click', () => {
-  vid.muted = !vid.muted;
-  updateMuteIcon();
-});
-
-function updateMuteIcon(){
-  if(vid.muted){
-    $('mico').innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
-  } else {
-    $('mico').innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
-  }
-}
-
-$('bq').addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (!hlsInstance || availableLevels.length === 0) return;
-
-  let listHtml = `<button onclick="switchQuality(-1)" style="width:100%;height:48px;border-radius:18px;background:${hlsInstance.currentLevel===-1?'var(--dark-blue)':'rgba(255,255,255,0.06)'};color:#fff;font-size:15px;font-weight:${hlsInstance.currentLevel===-1?'700':'500'};display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">Auto ${hlsInstance.currentLevel===-1?'✓':''}</button>`;
-
-  availableLevels.forEach((lvl, idx) => {
-    const qName = lvl.height ? lvl.height + 'p' : `Level ${idx}`;
-    const isActive = hlsInstance.currentLevel === idx;
-    listHtml += `<button onclick="switchQuality(${idx})" style="width:100%;height:48px;border-radius:18px;background:${isActive?'var(--dark-blue)':'rgba(255,255,255,0.06)'};color:#fff;font-size:15px;font-weight:${isActive?'700':'500'};display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">${qName} ${isActive?'✓':''}</button>`;
-  });
-
-  $('qsheet-list').innerHTML = listHtml;
-  
-  const ov = $('qsheet-ov');
-  const sheet = $('qsheet');
-  ov.style.opacity = '1';
-  ov.style.pointerEvents = 'auto';
-  sheet.style.transform = 'translateY(0)';
-});
-
-window.switchQuality = function(levelIdx){
-  if (hlsInstance) {
-    hlsInstance.currentLevel = levelIdx;
-  }
-  closeQSheet();
-};
-
-function closeQSheet(){
-  const ov = $('qsheet-ov');
-  const sheet = $('qsheet');
-  ov.style.opacity = '0';
-  ov.style.pointerEvents = 'none';
-  sheet.style.transform = 'translateY(100%)';
-}
-
-$('qcancel').addEventListener('click', closeQSheet);$('qsheet-ov').addEventListener('click', (e) => {
-  if(e.target === $('qsheet-ov')) closeQSheet();
-});
-
-$('bfs').addEventListener('click', () => {
-  const pContainer = $('playerView');
-  if(!document.fullscreenElement && !document.webkitFullscreenElement){
-    if(pContainer.requestFullscreen) {
-      pContainer.requestFullscreen().then(() => {
-        if(screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(() => {});
-        }
-      }).catch(()=>{});
-    } else if(pContainer.webkitRequestFullscreen) {
-      pContainer.webkitRequestFullscreen();
-    }
-  } else {
-    if(document.exitFullscreen) {
-      document.exitFullscreen().catch(()=>{});
-      if(screen.orientation && screen.orientation.unlock) {
-        screen.orientation.unlock();
-      }
-    } else if(document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
+    if (!lastLockTime || (currentTime - parseInt(lastLockTime)) > twentyFourHours) {
+      lockTimerTriggered = true;
+      setTimeout(() => {
+        streamLockOverlay.classList.add('show');
+        localStorage.setItem('cricxcrate_lock_timestamp', currentTime.toString());
+      }, 20000);
     }
   }
-});
 
-let currentZoom = 1;
-let initialDistance = null;
+  triggerStreamLockCheck();
 
-$('player').addEventListener('touchstart', (e) => {
-  if (e.touches.length === 2) {
-    initialDistance = Math.hypot(
-      e.touches[0].pageX - e.touches[1].pageX,
-      e.touches[0].pageY - e.touches[1].pageY
-    );
+  lockJoinBtn.onclick = () => {
+    window.open(TELEGRAM_LINK, '_blank');
+    streamLockOverlay.classList.remove('show');
+  };
+
+  const toast = document.getElementById('custom-toast-alert');
+  const shareBtn = document.getElementById('share-stream-btn');
+  if (shareBtn) {
+    shareBtn.onclick = function() {
+      const shareUrl = window.location.href;
+      const shareText = `Watch FOX Live Cricket Match on CricXCrate: ${shareUrl}`;
+
+      navigator.clipboard?.writeText(shareText).then(function() {
+        if (!toast) return;
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 2000);
+      });
+    };
   }
-}, { passive: true });
 
-$('player').addEventListener('touchmove', (e) => {
-  if (e.touches.length === 2 && initialDistance !== null) {
-    const currentDistance = Math.hypot(
-      e.touches[0].pageX - e.touches[1].pageX,
-      e.touches[0].pageY - e.touches[1].pageY
-    );
-    const factor = currentDistance / initialDistance;
-    currentZoom = Math.min(Math.max(1, currentZoom * (factor > 1 ? 1.02 : 0.98)), 4);
-    vid.style.transform = `scale(${currentZoom})`;
-  }
-}, { passive: true });
+  const bannerTg = document.getElementById('btn-banner-tg');
+  const floatTg = document.getElementById('float-tg-btn');
+  const reqBtn = document.getElementById('btn-request-content');
 
-$('player').addEventListener('touchend', (e) => {
-  if (e.touches.length < 2) {
-    initialDistance = null;
-  }
-});
+  if (bannerTg) bannerTg.onclick = () => window.open(TELEGRAM_LINK, '_blank');
+  if (floatTg) floatTg.onclick = () => window.open(TELEGRAM_LINK, '_blank');
+  if (reqBtn) reqBtn.onclick = () => window.open(TELEGRAM_LINK, '_blank');
 
-function showControls(){
-  $('playerHeader').classList.remove('hidden');$('playerFooter').classList.remove('hidden');
-  resetControlsTimer();
-}
+  setTimeout(() => {
+    const overlay1 = document.getElementById('telegram-overlay-1');
+    if (overlay1) overlay1.classList.add('show');
+  }, 2500);
 
-function resetControlsTimer(){
-  clearTimeout(hideControlsTimer);
-  hideControlsTimer = setTimeout(() => {
-    if(document.fullscreenElement || document.webkitFullscreenElement){
-      $('playerHeader').classList.add('hidden');$('playerFooter').classList.add('hidden');
-    }
-  }, 3000);
-}
+  const closePopup1 = () => {
+    const overlay1 = document.getElementById('telegram-overlay-1');
+    if (overlay1) overlay1.classList.remove('show');
+    setTimeout(() => {
+      const overlay2 = document.getElementById('telegram-overlay-2');
+      if (overlay2) overlay2.classList.add('show');
+    }, 200);
+  };
 
-$('player').addEventListener('click', (e) => {
-  if(e.target === vid || e.target === $('player')) {
-    const isHidden = $('playerHeader').classList.contains('hidden');
-    if(isHidden){
-      showControls();
-    } else {
-      clearTimeout(hideControlsTimer);
-      $('playerHeader').classList.add('hidden');$('playerFooter').classList.add('hidden');
-    }
-  }
+  const closePopup2 = () => {
+    const overlay2 = document.getElementById('telegram-overlay-2');
+    if (overlay2) overlay2.classList.remove('show');
+  };
+
+  const openTelegram = () => {
+    window.open(TELEGRAM_LINK, "_blank");
+    closePopup1();
+    closePopup2();
+  };
+
+  const p1Cancel = document.getElementById('popup-1-cancel');
+  const p1Join = document.getElementById('popup-1-join');
+  const p2Cancel = document.getElementById('popup-2-cancel');
+  const p2Join = document.getElementById('popup-2-join');
+
+  if (p1Cancel) p1Cancel.onclick = closePopup1;
+  if (p1Join) p1Join.onclick = openTelegram;
+  if (p2Cancel) p2Cancel.onclick = closePopup2;
+  if (p2Join) p2Join.onclick = openTelegram;
 });
 </script>
-</body></html>
+</body>
+</html>
